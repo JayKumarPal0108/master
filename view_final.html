@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Editable Excel Tracker</title>
+  <style>
+    body {font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f7f7f7; color: #111;}
+    h2 {padding: 12px; margin: 0;}
+    .tabs { display: flex; flex-wrap: wrap; background: #333; }
+    .tabs button { flex: 1; padding: 12px; cursor: pointer; background: #333; color: white; border: none; outline: none; }
+    .tabs button.active { background: #666; }
+    .tab-content { display: none; padding: 10px; }
+    .tab-content.active { display: block; }
+    table.dataTable thead th { background-color: #eee; }
+    .table-wrap { overflow:auto; }
+    td[contenteditable="true"] { background-color: #fcfce3; } /* Style for editable cells */
+    @media (max-width:600px) { table.dataTable { font-size:12px; } }
+  </style>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"/>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+  <h2 style="padding-left:12px">Editable Excel Tracker — All Sheets</h2>
+  <div class="tabs" id="sheetTabs"></div>
+  <div id="tabContents" style="padding:12px"></div>
+
+  <script>
+    // Initial data from your Excel file
+    const initialSheetsData = {"ALL": [{"Customer": "A S ESSENTTIALS", "PRODUCT NAME": "JAMUNA MILK KHOVA & SWEETS W 1000ML BOTTOM IML LBL", "MK-ART": "IML-5922", "GEAR ": 134}, {"Customer": "AKSHAR PLASTIC", "PRODUCT NAME": "AKSHAR PLASTIC SWEET BOX NAGESHWAR LID 250ML + 500 ML", "MK-ART": "IML 8791 / 8792", "GEAR ": 123}, {"Customer": "BLOW PACKAGING", "PRODUCT NAME": "GULF AL ADBLUE 20 LTR 921.74*331.10MM-KANCHIPURAM", "MK-ART": "IML-8510", "GEAR ": 295}, {"Customer": "BMRAJ INDUSTRIES PVT LTD", "PRODUCT NAME": "AMUL CHEESE SPREAD YUMMY PLAIN 200G BOTTOM ( BARODA )", "MK-ART": "IML-3367-1", "GEAR ": 115}, {"Customer": "EMAAR POLYMER", "PRODUCT NAME": "MK-ART-IML8363 EMAAR POLYMERS FEPCON SS BUCKET BIRYANI 7 KG LID", "MK-ART": "IML-8363", "GEAR ": 205}, {"Customer": "ESSEE METAL CONTAINERS PVT LTD\t", "PRODUCT NAME": "ESSEE METAL GEETHAM LOGO LID", "MK-ART": "0", "GEAR ": 134}, {"Customer": "Eco Energy ", "PRODUCT NAME": "SKU:R500 BOTTOM / LID PADMA", "MK-ART": "IML-7683", "GEAR ": 111}, {"Customer": "GDK SOLUTIONS", "PRODUCT NAME": "MK-ART-IML8753 GDK SOLUTIONS BANSAL 250G TUB/ LID", "MK-ART": "IML-8753", "GEAR ": 99}, {"Customer": "J&L ENTERPRISE", "PRODUCT NAME": "MK-ART-IML8868 JK PLASTIC AMBUR BIRYANI 500-750G", "MK-ART": "IML-8868", "GEAR ": 144}, {"Customer": "JOLLY CONTAINERS KALARIA", "PRODUCT NAME": "1030005513-IML-7.5LTR KIRLOSKAR SUPER GENU OIL BPCL WITH INVISIBLE SECURITY CODE", "MK-ART": "IML-8354", "GEAR ": 218}, {"Customer": "JOLLY CONTAINERS-DAMAN", "PRODUCT NAME": "MK-ART-IML8936 JOLLY CONTAINER BUTTER PACK 200G ( TOP AND BOTTOM )", "MK-ART": "IML-8936", "GEAR ": 99}, {"Customer": "JOLLY CONTAINERS-MALANPUR", "PRODUCT NAME": "1030004340-IML - 20LTR ADBLUE ASHOK LEYLAND GULF WITH QR CODE", "MK-ART": "IML-8366-1", "GEAR ": 288}, {"Customer": "JOLLY PLAST PACKAGING PRIVATE LIMITED", "PRODUCT NAME": "1060000270-IML- 20LTR ADBLUE ASHOK LEYLAND GULF-LUDHIYANA", "MK-ART": "IML8366-1", "GEAR ": 288}, {"Customer": "JOLLY TECH PACKAGING PVT LTD ", "PRODUCT NAME": "IML-200ML ONE PURE ELEGANCE (NP) GRASIM", "MK-ART": "IML-7840", "GEAR ": 102}, {"Customer": "KANTAM KONTAINER", "PRODUCT NAME": "I-FLY MILKA MALAI BAR BOTTOM + TOP IML LBL MK-ART-IML7574-1", "MK-ART": "IML-7574-1", "GEAR ": 162}, {"Customer": "KANTAM KONTAINERS LLP / SHAZ ", "PRODUCT NAME": "MK-ART-IML5658-1 AMUL 1 LTR VANILLA MAGIC BOTTOM LABEL", "MK-ART": "IML-5658-1", "GEAR ": 162}, {"Customer": "KAY PLAST PRODUCT PVT.LTD.", "PRODUCT NAME": "RAJ FRESH IML 1 KG-BOTTOM (GEAR 124)", "MK-ART": "IML-3852", "GEAR ": 123}, {"Customer": "KAYVEE ENTERPRISE", "PRODUCT NAME": "MK-ART-IML6058 JK PLASTIC ANAND BHAVAN SWEET 250ML", "MK-ART": "6058", "GEAR ": 108}, {"Customer": "KRIPA PALSTOPACK LLP", "PRODUCT NAME": "KRIPA PLASTIC MAA'S CHOICE CASHEW STICKER 15 KG", "MK-ART": "IML-8944", "GEAR ": 288}, {"Customer": "KUMAR PAINTS & INSULATE INDUSTRIES", "PRODUCT NAME": "1 LTR ROUND 1ML RALLISON SURPRISE HIGH GLOSS EMULSION", "MK-ART": "IML-4291-1", "GEAR ": 111}, {"Customer": "LONG THAMES ENTERPRISE", "PRODUCT NAME": "WETECH COMERICH-75T NLGI", "MK-ART": "IML-8257", "GEAR ": 108}, {"Customer": "MAYURI KUMKUM LTD", "PRODUCT NAME": "BY-01 IML STICKER NO-01 DARK KISS + COCONUT", "MK-ART": "9022 / 2023", "GEAR ": 134}, {"Customer": "NAKODA PLAST INDUSTRIES PRIVATE LIMITED", "PRODUCT NAME": "NAKODA NITRO LB BIG IML", "MK-ART": "IML-5316", "GEAR ": 139}, {"Customer": "SAI BABA POLYMER TECHNOLOGIES PVT LTD-UNIT-VI (MUMBAI)", "PRODUCT NAME": "20 LTR IML GULF AL ADBLUE-KHALAPUR", "MK-ART": "IML-8434", "GEAR ": 295}, {"Customer": "SENTHIL PLASTIC", "PRODUCT NAME": "RKG AGMARK GHEE 5 LTR", "MK-ART": "IML-8654", "GEAR ": 200}, {"Customer": "SENTHIL PLASTIC CONTAINERS PVT LTD", "PRODUCT NAME": "20 LTR NIPPON PAINT WEATHERBOND ADVANCE WITH LAMINATION IML LBL", "MK-ART": "IML-7469", "GEAR ": 295}, {"Customer": "SENTHIL PLATIC CONTAINERS PVT LTD", "PRODUCT NAME": "4 LITRE NIPPON WEATHERBOND ADVANCE WITH LAMINATION IML LBL", "MK-ART": "IML-7467", "GEAR ": 205}, {"Customer": "SHREE JAGDISH PLASTIC", "PRODUCT NAME": "MK-ART-IML5830-3 SHRI JAGDISH MILTOP JAGGERY NEW DESIGN 900G", "MK-ART": "IML-5830-3", "GEAR ": 128}, {"Customer": "SHREE SHYAM PACKAGING", "PRODUCT NAME": "RECENT CHAM CHAM", "MK-ART": "IML-8682", "GEAR ": 282}, {"Customer": "SSF PLASTIC", "PRODUCT NAME": "SSF AACHI TWINKLE DISHWASH 500 G LID (GEAR 115)", "MK-ART": "IML-9095", "GEAR ": 102}, {"Customer": "SSF PLASTIC INDIA PVT LTD BADDI UNIT II", "PRODUCT NAME": "LABEL TUB IML VIM BAR 500G KURALI -64969841-RM-7061 PKD 05/2025", "MK-ART": "0", "GEAR ": 128}, {"Customer": "SSF PLASTICS INDIA PVT LTD-BADDI UNIT-2", "PRODUCT NAME": "LABEL : KISSAN MIXED FRUIT JAM 90 G -LABEL : KISSAN MIXED FRUIT JAM 90 G -", "MK-ART": "IML-6930-1", "GEAR ": 134}, {"Customer": "TERRA TECH PACKS ", "PRODUCT NAME": "HAIRBHAVAM ORANGE PEEL + FOIL IML LABEL-500 ML ROUND TUB", "MK-ART": "IML-7758", "GEAR ": 108}, {"Customer": "TRIMURTI IML SOLUTION PVT LTD", "PRODUCT NAME": "DLECTA CREAM CHEESE 180 SQUARE TUB + LID IML 825-5", "MK-ART": "825-5", "GEAR ": 102}, {"Customer": "YASH POLYMERS ", "PRODUCT NAME": "NIPPON PAINTS 4 LTR", "MK-ART": "IML-8296", "GEAR ": 181}, {"Customer": "ASHA PACKAGING", "PRODUCT NAME": "ASHA HALDIRAM'S FATAFAT BHEL BOTTOM 76.77*350.21MM", "MK-ART": "IML-8331", "GEAR ": 115}, {"Customer": "ASHA PACKAGING", "PRODUCT NAME": "FATAFAT BHEL", "MK-ART": "IML-8331", "GEAR ": 115}, {"Customer": "EREGON IMPEX PVT LTD.", "PRODUCT NAME": "HOLIDAY 16 COOLER IML 247*96MM", "MK-ART": "IML4166", "GEAR ": 160}, {"Customer": "EREGON IMPEX PVT LTD.", "PRODUCT NAME": "OVAL LID (BLOSSOM) COOLER IML 404.7*139MM", "MK-ART": "0", "GEAR ": 134}, {"Customer": "JOLLY CONTAINERS-DABHEL UNIT", "PRODUCT NAME": "1030005310-IML-200ML BIRLA ONE TRUE LOOK LUX.EMLU", "MK-ART": "IML-8019", "GEAR ": 102}, {"Customer": "JOLLY CONTAINERS-DABHEL UNIT", "PRODUCT NAME": "1030005451-IML-200ML BIRLA ONE PURE LEGEND GRASIM", "MK-ART": "IML-8248", "GEAR ": 102}, {"Customer": "JOLLY PLAST PACKAGING PVT LTD-LUDHIANA", "PRODUCT NAME": "1060000270-IML- 20LTR ADBLUE ASHOK LEYLAND GULF", "MK-ART": "IML8366-1", "GEAR ": 288}, {"Customer": "JOLLY PLAST PACKAGING PVT LTD-LUDHIANA", "PRODUCT NAME": "1060000270-IML- 20LTR ADBLUE ASHOK LEYLAND GULF-LUDHIANA", "MK-ART": "IML8366-1", "GEAR ": 288}, {"Customer": "JOLLY TECH PACKAGING PVT. LTD. - KALARIA", "PRODUCT NAME": "1051001604 -IML-15L BPCL KIRLOSKAR SUPER W/O QR CODE GEN OIL", "MK-ART": "IML-8352-1", "GEAR ": 282}, {"Customer": "JOLLY TECH PACKAGING PVT. LTD. - KALARIA", "PRODUCT NAME": "1051001606- IML-15L BPCL KIRLOSKAR PREM W/O QR CODE", "MK-ART": "IML-8351-1", "GEAR ": 282}, {"Customer": "JYOTHY LAB", "PRODUCT NAME": "WOZ TOILET CLEANER 500 ML BACK", "MK-ART": "IML-9216", "GEAR ": 108}, {"Customer": "JYOTHY LAB", "PRODUCT NAME": "WOZ TOILET CLEANER 500 ML FRONT", "MK-ART": "IML-9216", "GEAR ": 108}, {"Customer": "Milan Décor", "PRODUCT NAME": "MILAN POSTEEK PEDHA GREEN / BULE 500G-BOTTOM", "MK-ART": "IML4055-M", "GEAR ": 123}, {"Customer": "Milan Décor", "PRODUCT NAME": "MILAN POSTEEK PEDHA GREEN / BULE 500G-TOP", "MK-ART": "IML-4055-M", "GEAR ": 108}, {"Customer": "NIKAS CORPORATION", "PRODUCT NAME": "CHOCO GOOD 800G & 400 G TUB /LID", "MK-ART": "IML9082-M", "GEAR ": 139}, {"Customer": "NIKAS CORPORATION", "PRODUCT NAME": "IML TARTINA 425 G / IML TARTINA 800 G LID + TUB", "MK-ART": "IML-8717-M", "GEAR ": 139}, {"Customer": "NILKAMAL LIMITED", "PRODUCT NAME": "IMLRT01-500 G LID IML REEM KIMRI RED 500GM DATES LID", "MK-ART": "0", "GEAR ": 99}, {"Customer": "NILKAMAL LIMITED", "PRODUCT NAME": "IMLRT01-500 GCON IML REEM KIMRI RED 500GM DATES CNTR", "MK-ART": "0", "GEAR ": 128}, {"Customer": "R.K METAL & PLASTIC PVT. LTD", "PRODUCT NAME": "IML 20 LTR SWARAJ-XT (SAVITA)", "MK-ART": "IML-8179", "GEAR ": 288}, {"Customer": "R.K METAL & PLASTIC PVT. LTD", "PRODUCT NAME": "IML20 LTR SWARAJ-XT (SAVITA) IML-0058", "MK-ART": "8179", "GEAR ": 288}, {"Customer": "RAJSHREE POLYMER", "PRODUCT NAME": "1 LTR VANILLA GOLD WITH IML CONT", "MK-ART": "IML-7048-1", "GEAR ": 162}, {"Customer": "RAJSHREE POLYMER", "PRODUCT NAME": "1 LTR VANILLA GOLD WITH IML LID", "MK-ART": "IML-7048-1", "GEAR ": 128}, {"Customer": "SAI BABA", "PRODUCT NAME": "GULF AL ADBLUE 20 LTR", "MK-ART": "IML-8434", "GEAR ": 295}, {"Customer": "SAI BABA", "PRODUCT NAME": "GULF AL ADBLUE 20 LTR (AL-6L-B3)", "MK-ART": "IML-8434", "GEAR ": 295}, {"Customer": "SAI BABA POLYMER TECHNOLOGIES PVT LTD-ROHTAK", "PRODUCT NAME": "VANILA GOLD LID + BUTTERSCOTCH GOLD LID", "MK-ART": "IML-8674-M", "GEAR ": 128}, {"Customer": "SAI BABA POLYMER TECHNOLOGIES PVT LTD-ROHTAK", "PRODUCT NAME": "VANILA GOLD TUB + BUTTERSCOTCH GOLD TUB", "MK-ART": "IML-8674-M", "GEAR ": 162}, {"Customer": "SAI BABA POLYMER TECHNOLOGIES PVT LTDUNIT-VII-ROHTAK", "PRODUCT NAME": "VANILA MAGIC-HTL AMUL ICE-CREAM1 LTR/540G IML BOTTOM LBL", "MK-ART": "IML-5479-1", "GEAR ": 162}, {"Customer": "SAI BABA POLYMER TECHNOLOGIES PVT LTDUNIT-VII-ROHTAK", "PRODUCT NAME": "VANILA MAGIC-HTL AMUL ICE-CREAM1 LTR/540G IML TOP LBL", "MK-ART": "IML-5479-1", "GEAR ": 128}, {"Customer": "SIMIT ENTERPRISES", "PRODUCT NAME": "SIMIT ENTERPRISE ZYDUS NUTRALITE DOODHSHAKTI BUTTER 500G LID", "MK-ART": "IML-8358", "GEAR ": 134}, {"Customer": "SIMIT ENTERPRISES", "PRODUCT NAME": "SIMIT ENTERPRISE ZYDUS NUTRALITE DOODHSHAKTI BUTTER 500G TUB", "MK-ART": "IML-8358", "GEAR ": 134}, {"Customer": "TRIMURTI POLYMERS", "PRODUCT NAME": "IML885 AJFAN FOODS PREMIUM KIMIA DATES 700 RCT 5 SIDE TUB", "MK-ART": "IML-5414-1", "GEAR ": 123}, {"Customer": "TRIMURTI POLYMERS", "PRODUCT NAME": "IML886 AJFAN FOODS PREMIUM KIMIA DATES 700 RCT LID", "MK-ART": "IML-5414-1", "GEAR ": 102}, {"Customer": "FORTUNE CAPS & PAILS", "PRODUCT NAME": "MK-ART-IML8487 FORTUNE CAPS CLASSIC GOLD EMULSION 10L", "MK-ART": "IML-8487", "GEAR ": 248}, {"Customer": "FORTUNE CAPS & PAILS", "PRODUCT NAME": "MK-ART-IML8507-FORTUNE CAPS ULTRA EMULSION 10LL", "MK-ART": "IML-8507", "GEAR ": 248}, {"Customer": "FORTUNE CAPS & PAILS", "PRODUCT NAME": "MK-ART-IML8508 FORTUNE CAPS ULTRA EMULSION 20L", "MK-ART": "IML-858", "GEAR ": 295}, {"Customer": "G.K.PRINTERS", "PRODUCT NAME": "TIGER PHENYLE 1 LTR IML LBL MK-ART-IML55/2", "MK-ART": "IML 55/2", "GEAR ": 99}, {"Customer": "G.K.PRINTERS", "PRODUCT NAME": "TIGER PHENYLE 1 LTR IML LBL MK-ART-IML55/4", "MK-ART": "IML-55/4", "GEAR ": 99}, {"Customer": "G.K.PRINTERS", "PRODUCT NAME": "TIGER PHENYLE 1 LTR IML LBL NEW BLOCK", "MK-ART": "IML-55-2", "GEAR ": 99}, {"Customer": "GLOBAL POLYBAGS INDUSTRIES PVT LTD", "PRODUCT NAME": "ADYAR ANAND BHAVAN CHENNAI SWEET 250 G BLUE", "MK-ART": "IML-4666", "GEAR ": 120}, {"Customer": "GLOBAL POLYBAGS INDUSTRIES PVT LTD", "PRODUCT NAME": "ADYAR ANAND BHAVAN CHENNAI SWEET 250 G GREEN", "MK-ART": "IML-4663", "GEAR ": 120}, {"Customer": "GLOBAL POLYBAGS INDUSTRIES PVT LTD", "PRODUCT NAME": "ADYAR ANAND BHAVAN CHENNAI SWEET 250 G PURPLE & RED", "MK-ART": "IML-4664/4665", "GEAR ": 120}, {"Customer": "JAIN PLASCONS", "PRODUCT NAME": "MK-ART- IML9117 JK PLASTIC MURTHY SWEETS 250 ML + 500 ML BOTTOM", "MK-ART": "IML-9117", "GEAR ": 134}, {"Customer": "JAIN PLASCONS", "PRODUCT NAME": "MK-ART- IML9117 JK PLASTIC MURTHY SWEETS 250 ML + 500 ML LID", "MK-ART": "IML-9117", "GEAR ": 134}, {"Customer": "JAIN PLASCONS", "PRODUCT NAME": "PS4 BOMBAY CHAAT W1200ML", "MK-ART": "8175", "GEAR ": 128}, {"Customer": "MILAN PLAST", "PRODUCT NAME": "MK-ART-IML- 8642 MILAN PLAST BAT SHAMIM DATE LID", "MK-ART": "IML-8642", "GEAR ": 93}, {"Customer": "MILAN PLAST", "PRODUCT NAME": "MK-ART-IML- 8642 MILAN PLAST BAT SHAMIM DATE TUB", "MK-ART": "IML-8642", "GEAR ": 128}, {"Customer": "MILAN PLAST", "PRODUCT NAME": "MK-ART-IML8802 MILAN PLAST GIRMIT BIG MISHRA 1500ML", "MK-ART": "IML-8802", "GEAR ": 139}, {"Customer": "SHREE VARNIKA TECHNO PACK", "PRODUCT NAME": "ASRA KIMIA DATES LID WITH GOLD FOIL", "MK-ART": "IML-7629", "GEAR ": 99}, {"Customer": "SHREE VARNIKA TECHNO PACK", "PRODUCT NAME": "SHREE VARNIKA ASRA DATES LID", "MK-ART": "IML-4396-2", "GEAR ": 99}, {"Customer": "SHREE VARNIKA TECHNO PACK", "PRODUCT NAME": "SHREE VARNIKA ASRA DATES TUB", "MK-ART": "IML-4396-2", "GEAR ": 128}, {"Customer": "SHRI PHARMA PACK", "PRODUCT NAME": "15 KG FLEXILUBE IML 906*300MM", "MK-ART": "IML-3063", "GEAR ": 288}, {"Customer": "SHRI PHARMA PACK", "PRODUCT NAME": "6 LTR IML (SP-7000) BL PRD PLUS", "MK-ART": "IML-5873-1", "GEAR ": 218}, {"Customer": "SHRI PHARMA PACK", "PRODUCT NAME": "CPRB 10 LTR IML", "MK-ART": "IML-3039-1", "GEAR ": 258}, {"Customer": "SSF PLASTICS INDIA PVT LTD - HOSUR", "PRODUCT NAME": "LABELS : TUB IML 500GM VIM BAR - CHEMEX 64969841-RM-7039 PKD 07/25", "MK-ART": "IML-8632", "GEAR ": 128}, {"Customer": "SSF PLASTICS INDIA PVT LTD - HOSUR", "PRODUCT NAME": "LABELS : TUB IML 500GM VIM BAR - NAGA 64969841-RM-7038 PKD 05/25", "MK-ART": "IML-8632", "GEAR ": 128}, {"Customer": "SSF PLASTICS INDIA PVT LTD - HOSUR", "PRODUCT NAME": "LABELS : TUB IML 500GM VIM BAR - NAGA 64969841-RM-7038 PKD 06/25", "MK-ART": "IML-8632", "GEAR ": 128}, {"Customer": "YASH PLASTOMET PVT LTD", "PRODUCT NAME": "IML 20 LTR SWARAJ - XT[SAVITA]", "MK-ART": "IML-8179", "GEAR ": 288}, {"Customer": "YASH PLASTOMET PVT LTD", "PRODUCT NAME": "IML MK ART IML- 15 LTR VEEDOL TURBO PRO 15W-40 API CI-4 PLUSE", "MK-ART": "0", "GEAR ": 282}, {"Customer": "YASH PLASTOMET PVT LTD", "PRODUCT NAME": "MK ART IML7002-IML 10 LTR VEEDOL SPRINT 15W 40 API CF-4", "MK-ART": "IML-7002", "GEAR ": 258}, {"Customer": "BEETEE PACKAGING PRIVATE LIMITED", "PRODUCT NAME": "LABEL FENA NIP 500G CONTAINER", "MK-ART": "IML-3121-4", "GEAR ": 128}, {"Customer": "BEETEE PACKAGING PRIVATE LIMITED", "PRODUCT NAME": "LABEL FENA NIP 500G LID", "MK-ART": "IML-3121-4", "GEAR ": 139}, {"Customer": "BEETEE PACKAGING PRIVATE LIMITED", "PRODUCT NAME": "RAMBHAVAN SWEETS 16-1000 LID IML 3521", "MK-ART": "IML-3521", "GEAR ": 144}, {"Customer": "BEETEE PACKAGING PRIVATE LIMITED", "PRODUCT NAME": "RAMBHAVAN SWEETS 16-500 LID IML 3520", "MK-ART": "IML-3520", "GEAR ": 120}, {"Customer": "BHAGWATI TIRATH POLYCONTAINER INDUSTRIES PVT.LTD", "PRODUCT NAME": "500/600G NIP FENA LID", "MK-ART": "IML 3121-3", "GEAR ": 139}, {"Customer": "BHAGWATI TIRATH POLYCONTAINER INDUSTRIES PVT.LTD", "PRODUCT NAME": "600G NIP FENA CONTAINER", "MK-ART": "IML5608", "GEAR ": 99}, {"Customer": "BHAGWATI TIRATH POLYCONTAINER INDUSTRIES PVT.LTD", "PRODUCT NAME": "PEE CEE COSMA SOPE 118-300 CONTAINER DOCTOR DISHWASH", "MK-ART": "IML-5875-1", "GEAR ": 128}, {"Customer": "BHAGWATI TIRATH POLYCONTAINER INDUSTRIES PVT.LTD", "PRODUCT NAME": "PEE CEE COSMA SOPE 118-300 LID DOCTOR DISHWASH", "MK-ART": "IML-5875-1", "GEAR ": 139}, {"Customer": "BLOW PACKAGING INDIA PVT LIMITED", "PRODUCT NAME": "GULF AL ADBLUE 20 LTR 921.74*331.10MM (AL-6L-B3)", "MK-ART": "IML-8510", "GEAR ": 295}, {"Customer": "BLOW PACKAGING INDIA PVT LIMITED", "PRODUCT NAME": "GULF ECOPRO ADBLUE 20 LTR 921.74*331.10MM", "MK-ART": "IML-8512", "GEAR ": 295}, {"Customer": "BLOW PACKAGING INDIA PVT LIMITED", "PRODUCT NAME": "GULF MAX ADBLUE 20 LTR 921.74*331.10MM", "MK-ART": "IML-8511", "GEAR ": 295}, {"Customer": "BLOW PACKAGING INDIA PVT LIMITED", "PRODUCT NAME": "GULF MAX ADBLUE 20 LTR 921.74*331.10MM (MAX-B1)", "MK-ART": "IML-8511", "GEAR ": 295}, {"Customer": "EVEREST BEVERAGES & FOOD INDUSTRIES PRIVATE LIMITED", "PRODUCT NAME": "LABEL EST CONTINENTAL SAUCE 4.5 KG IML BACK", "MK-ART": "IML-5614", "GEAR ": 144}, {"Customer": "EVEREST BEVERAGES & FOOD INDUSTRIES PRIVATE LIMITED", "PRODUCT NAME": "LABEL EST CONTINENTAL SAUCE 4.5 KG IML FRONT", "MK-ART": "IML-5614", "GEAR ": 144}, {"Customer": "EVEREST BEVERAGES & FOOD INDUSTRIES PRIVATE LIMITED", "PRODUCT NAME": "LABEL EST GREEN CHILLI SAUCE 4.5KG IML BACK", "MK-ART": "IML-958-5", "GEAR ": 144}, {"Customer": "EVEREST BEVERAGES & FOOD INDUSTRIES PRIVATE LIMITED", "PRODUCT NAME": "LABEL EST GREEN CHILLI SAUCE 4.5KG IML FRONT", "MK-ART": "IML-958-5", "GEAR ": 144}, {"Customer": "MANIKA PLASTECH PRIVATE LIMITED", "PRODUCT NAME": "IML-AURREGLINSL-1L IML-JSW AURUS REGAL INTERIORS SILK 01L", "MK-ART": "IML-6180", "GEAR ": 128}, {"Customer": "MANIKA PLASTECH PRIVATE LIMITED", "PRODUCT NAME": "IML-JOICLAS-INT-1L IML JSW JOIE CLASSIC INTERIORS 01L", "MK-ART": "IML-6110", "GEAR ": 128}, {"Customer": "MANIKA PLASTECH PRIVATE LIMITED", "PRODUCT NAME": "IML-JOIPRWH-INT-1L IML JSW JOIE PRIMER INTERIORS WHITE 01 LTR", "MK-ART": "IML-6112", "GEAR ": 128}, {"Customer": "MANIKA PLASTECH PRIVATE LIMITED", "PRODUCT NAME": "IML-PXELIN-EXT-1L IML-JSW PIXA ELEGANT EXTERIORS MATT 01L", "MK-ART": "6034-1", "GEAR ": 128}, {"Customer": "MILLENNIUM PLASTICS", "PRODUCT NAME": "B 750 LID-AHMEDIA LABEL", "MK-ART": "IML-6487", "GEAR ": 144}, {"Customer": "MILLENNIUM PLASTICS", "PRODUCT NAME": "MK-ART-IML9115 JK PLASTIC SASTHA PALAGARAM SWEETS & SNACKS 250G", "MK-ART": "IML-9115", "GEAR ": 108}, {"Customer": "MILLENNIUM PLASTICS", "PRODUCT NAME": "STAR BIRIYANI MUTTON 750GRM LID", "MK-ART": "IML-5605", "GEAR ": 144}, {"Customer": "MILLENNIUM PLASTICS", "PRODUCT NAME": "STAR BIRYANI MUTTON 750GRM LID", "MK-ART": "IML-5605", "GEAR ": 144}, {"Customer": "RAJSHREE POLYPACK LIMITED-UNIT-IV", "PRODUCT NAME": "1LTR-PRAGATI-TENDER COCONUT-ICE CREAM +PRAGATI-CUSTARD APPLE-ICE CREAM -TUB / LID", "MK-ART": "0", "GEAR ": 162}, {"Customer": "RAJSHREE POLYPACK LIMITED-UNIT-IV", "PRODUCT NAME": "AMUL 1LTR CARAMEL CHOCOLATE GOLD LID IML LBL", "MK-ART": "IML-7051", "GEAR ": 128}, {"Customer": "RAJSHREE POLYPACK LIMITED-UNIT-IV", "PRODUCT NAME": "RM-IML-00011 LABEL-IML-CNTR-PP FILM-507*97.75*65#*H-1LTR-AMUL-BUTTERSCOTCH GOLD + CARAMEL CHOCOLATE GOLD ICE CREAM", "MK-ART": "IML-7049/7051", "GEAR ": 162}, {"Customer": "RAJSHREE POLYPACK LIMITED-UNIT-IV", "PRODUCT NAME": "RM-IML-00012 LABEL-IML-LID-PP FILM-133*132.4*65#*H-1LTR-AMUL-BUTTERSCOTCH GOLD-ICE CREAM", "MK-ART": "IML-7049", "GEAR ": 128}, {"Customer": "SGC TRADEX LLP", "PRODUCT NAME": "500G LID IML 142.88*85.48MM", "MK-ART": "IML-8492", "GEAR ": 162}, {"Customer": "SGC TRADEX LLP", "PRODUCT NAME": "500G LID IML 247*190.4MM", "MK-ART": "IML-8492", "GEAR ": 93}, {"Customer": "SGC TRADEX LLP", "PRODUCT NAME": "500G TUB IML 142.88*85.48MM", "MK-ART": "IML-8492", "GEAR ": 162}, {"Customer": "SGC TRADEX LLP", "PRODUCT NAME": "500G TUB IML 247*190.4MM", "MK-ART": "IML8492", "GEAR ": 93}, {"Customer": "THANGAM PAKS", "PRODUCT NAME": "250 LID KAUSALAYA", "MK-ART": "IML-7831", "GEAR ": 108}, {"Customer": "THANGAM PAKS", "PRODUCT NAME": "500 LID KAUSALAYA", "MK-ART": "IML7837", "GEAR ": 128}, {"Customer": "THANGAM PAKS", "PRODUCT NAME": "JK PLASTIC APOORVAA SWEET 250GM LID", "MK-ART": "IML-8505", "GEAR ": 108}, {"Customer": "THANGAM PAKS", "PRODUCT NAME": "MK-ART- IML8852 JK PLASTIC RADHA’S HOMEMADE SWEET 500 ML + 250 ML", "MK-ART": "IML-8852/8849", "GEAR ": 134}]}; // Abridged for brevity
+
+    // New editable columns
+    const editableColumns = ["bnk-no", "Mk-Art of Die", "Ups", "Gear", "Machine no"];
+    
+    // Function to load data from LocalStorage
+    function loadData() {
+        const savedData = localStorage.getItem('editableTrackerData');
+        return savedData ? JSON.parse(savedData) : {};
+    }
+
+    // Function to save data to LocalStorage
+    function saveData(data) {
+        localStorage.setItem('editableTrackerData', JSON.stringify(data));
+    }
+
+    // Prepare the final data by merging initial data with saved data
+    let sheetsData = {};
+    const savedData = loadData();
+
+    Object.keys(initialSheetsData).forEach(sheetName => {
+        sheetsData[sheetName] = initialSheetsData[sheetName].map((row, index) => {
+            const uniqueRowId = `${sheetName}-${row.Customer}-${row["PRODUCT NAME"]}-${index}`;
+            const savedRow = savedData[uniqueRowId] || {};
+            
+            // Add new editable columns with saved or default empty values
+            const newColumns = {};
+            editableColumns.forEach(col => {
+                newColumns[col] = savedRow[col] || '';
+            });
+
+            return { ...row, ...newColumns };
+        });
+    });
+
+
+    const tabsContainer = document.getElementById("sheetTabs");
+    const contentsContainer = document.getElementById("tabContents");
+
+    // Create tabs and tables for each sheet
+    Object.keys(sheetsData).forEach((sheetName, idx) => {
+      const btn = document.createElement('button');
+      btn.textContent = sheetName;
+      btn.addEventListener('click', ()=> openTab(sheetName));
+      if(idx===0) btn.classList.add('active');
+      tabsContainer.appendChild(btn);
+
+      const div = document.createElement('div');
+      div.className = 'tab-content' + (idx===0 ? ' active' : '');
+      div.id = 'tab-' + sheetName;
+
+      const rows = sheetsData[sheetName];
+      if(rows.length === 0) {
+        div.innerHTML = '<p>No data</p>';
+      } else {
+        const headers = Object.keys(rows[0]);
+        let table = document.createElement('table');
+        table.className = 'display';
+        table.id = 'table-' + sheetName;
+        
+        let thead = document.createElement('thead');
+        let trHead = document.createElement('tr');
+        headers.forEach(h => { let th = document.createElement('th'); th.textContent = h; trHead.appendChild(th); });
+        thead.appendChild(trHead);
+        table.appendChild(thead);
+        
+        let tbody = document.createElement('tbody');
+        rows.forEach((r, rowIndex) => { 
+            let tr = document.createElement('tr');
+            headers.forEach(h => { 
+                let td = document.createElement('td');
+                td.textContent = r[h] !== undefined ? r[h] : '';
+                // Make the new columns editable
+                if (editableColumns.includes(h)) {
+                    td.setAttribute('contenteditable', 'true');
+                    td.dataset.rowId = `${sheetName}-${r.Customer}-${r["PRODUCT NAME"]}-${rowIndex}`;
+                    td.dataset.column = h;
+                }
+                tr.appendChild(td); 
+            }); 
+            tbody.appendChild(tr); 
+        });
+        table.appendChild(tbody);
+        div.appendChild(table);
+      }
+      contentsContainer.appendChild(div);
+    });
+
+    function openTab(name) { 
+      document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      [...document.querySelectorAll('.tabs button')].find(b=>b.textContent===name).classList.add('active');
+      document.getElementById('tab-'+name).classList.add('active');
+      $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+    }
+
+    $(document).ready(function() {
+      Object.keys(sheetsData).forEach(sheetName => {
+        const tableId = '#table-' + sheetName;
+        
+        // Add filter inputs to the header
+        $(`${tableId} thead`).append('<tr class="filters"></tr>');
+        $(`${tableId} thead th`).each(function() {
+          const title = $(this).text();
+          $(`${tableId} thead .filters`).append(`<th><input type="text" placeholder="Filter ${title}" /></th>`);
+        });
+
+        const table = $(tableId).DataTable({
+          paging: true,
+          searching: true,
+          ordering: true,
+          responsive: true,
+          orderCellsTop: true,
+          initComplete: function() {
+            const api = this.api();
+            api.columns().every(function(colIdx) {
+              const that = this;
+              const headerInput = $(api.table().header()).find('.filters th').eq(colIdx).find('input');
+              headerInput.on('keyup change clear', function() {
+                if (that.search() !== this.value) {
+                  that.search(this.value).draw();
+                }
+              });
+            });
+          }
+        });
+
+        // Add event listener for saving edited content
+        $(tableId).on('blur', 'td[contenteditable="true"]', function() {
+            const cell = $(this);
+            const rowId = cell.data('row-id');
+            const column = cell.data('column');
+            const newValue = cell.text();
+
+            let currentData = loadData();
+            if (!currentData[rowId]) {
+                currentData[rowId] = {};
+            }
+            currentData[rowId][column] = newValue;
+            saveData(currentData);
+        });
+      });
+      openTab(Object.keys(sheetsData)[0]);
+    });
+  </script>
+</body>
+</html>
